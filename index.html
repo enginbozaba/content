@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Diyetisyen İçerik Stüdyosu | Akıllı Üretim</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS ve UX Önceki Mükemmel Tasarımla Aynıdır */
+        :root {
+            --primary-color: #C13584; /* Instagram Moru/Gülü */
+            --accent-color: #f77737; /* Instagram Turuncusu */
+            --success-color: #28a745;
+            --bg-color: #fafafa;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --border-radius: 16px;
+        }
+
+        body { font-family: 'Roboto', sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding-top: 55px; padding-bottom: 100px; line-height: 1.5; }
+        .header-bar { position: fixed; top: 0; left: 0; right: 0; height: 55px; background: linear-gradient(45deg, #405DE6, #5B51D8, #833AB4, #C13584, #E1306C, #FD1D1D, #F56040, #F77737, #FCAF45); display: flex; align-items: center; padding: 0 15px; box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1); z-index: 1000; }
+        .header-bar h1 { margin: 0; font-size: 18px; font-weight: 500; color: white; }
+        .container { width: 100%; padding: 0 15px; box-sizing: border-box; max-width: 600px; margin: 0 auto; }
+        .card { background: var(--card-bg); padding: 20px; margin-bottom: 20px; border-radius: var(--border-radius); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
+        label { display: flex; align-items: center; margin-top: 15px; margin-bottom: 8px; font-weight: 500; color: #555; font-size: 14px; }
+        label i { margin-right: 6px; color: var(--primary-color); font-size: 16px; }
+        .section-title { color: var(--primary-color); font-weight: 700; font-size: 16px; margin-bottom: 15px; display: flex; align-items: center; }
+        .section-title i { margin-right: 8px; color: var(--accent-color); }
+        input[type="text"], input[type="url"], select { width: 100%; padding: 14px 12px; border: 1px solid #ced4da; border-radius: 8px; box-sizing: border-box; font-size: 15px; margin-bottom: 10px; height: 48px; }
+        input:focus, select:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(193, 53, 132, 0.2); outline: none; }
+        .url-input-container { display: flex; flex-direction: column; gap: 8px; }
+        .simple-input-group { display: grid; grid-template-columns: 1fr; gap: 15px; }
+        @media (min-width: 480px) { .simple-input-group { grid-template-columns: 1fr 1fr; gap: 10px;} }
+        .fab-container { position: fixed; bottom: 0; left: 0; right: 0; padding: 10px 15px 25px 15px; background: var(--card-bg); box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.1); z-index: 999; }
+        #generateButton { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888, #991475); padding: 18px 20px; font-size: 17px; width: 100%; border-radius: 12px; font-weight: 600; transition: all 0.3s; display: flex; align-items: center; justify-content: center; border: none; color: white; cursor: pointer; }
+        #generateButton:disabled { background: var(--primary-color); opacity: 0.8; cursor: progress; }
+        .output-box { 
+            background-color: #fff0f5; 
+            padding: 18px; 
+            border-radius: 12px; 
+            border: 1px solid #ffd3e4; 
+            font-size: 15px; 
+            line-height: 1.6; 
+            white-space: pre-wrap;
+            word-wrap: break-word; 
+            margin-bottom: 10px; /* Kopyala butonu için boşluk */
+        }
+        .error { color: #dc3545; background-color: #f8d7da; padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 14px; }
+        .api-warning { color: #856404; background-color: #fff3cd; padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 13px; }
+        .output-box strong { font-weight: 700; color: var(--primary-color); }
+
+        /* KOPYALAMA BUTONU STİLİ */
+        #copyButton {
+            background-color: #833AB4; /* Instagram'ın ana mor tonu */
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            margin-top: 10px;
+        }
+        #copyButton:hover {
+            background-color: #991475;
+        }
+        #copyButton i {
+            margin-right: 8px;
+        }
+
+        /* PROGRESS BAR STİLLERİ */
+        .progress-container {
+            margin-bottom: 15px;
+            display: none;
+            align-items: center;
+            font-size: 13px;
+            color: #555;
+        }
+        .progress-bar {
+            flex-grow: 1;
+            height: 8px;
+            background-color: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-left: 10px;
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #f77737, #C13584);
+            transition: width 0.5s ease-in-out;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header-bar">
+    <h1><i class="fas fa-microchip" style="margin-right: 8px;"></i> AI İçerik Stüdyosu</h1>
+</div>
+
+<div class="container">
+    
+    <div class="card">
+        <div class="section-title"><i class="fas fa-lock"></i> Hesap Ayarları</div>
+        <label for="apiKey">Gemini API Anahtarınız</label>
+        <div class="api-warning" id="apiWarning" style="margin-top:0;">
+            🔑 **Kişisel Anahtar:** Anahtar, cihazınızda saklanacaktır. API kullanımı size aittir.
+        </div>
+        <input type="text" id="apiKey" placeholder="Kendi Gemini API Anahtarınızı giriniz" required>
+    </div>
+
+    <div class="card">
+        <div class="section-title"><i class="fas fa-file-alt"></i> İçerik Girdileri</div>
+        
+        <label>İlham Kaynağı URL'ler (Maksimum 5)</label>
+        <div class="url-input-container">
+            <input type="url" class="reference-url" data-index="1" placeholder="URL 1 (Gerekli)">
+            <input type="url" class="reference-url" data-index="2" placeholder="URL 2">
+            <input type="url" class="reference-url" data-index="3" placeholder="URL 3">
+            <input type="url" class="reference-url" data-index="4" placeholder="URL 4">
+            <input type="url" class="reference-url" data-index="5" placeholder="URL 5">
+        </div>
+        <p class="error" id="urlError" style="display: none; font-size: 13px; margin-top: -5px;">Lütfen en az bir (1) URL girin.</p>
+
+        <label for="postTopic"><i class="fas fa-clipboard"></i> Gönderi Konusu</label>
+        <input type="text" id="postTopic" placeholder="Örn: Kan şekeri dengeleme tüyoları" required>
+        
+    </div>
+    
+    <div class="card">
+        <div class="section-title"><i class="fas fa-sliders-h"></i> Yaratıcılık ve Format Ayarları</div>
+        
+        <div class="simple-input-group">
+            <div>
+                <label for="targetFormat"><i class="fas fa-bullseye"></i> Hedef Format</label>
+                <select id="targetFormat" required>
+                    <option value="Akış Gönderisi">Akış Gönderisi</option>
+                    <option value="Hikaye Metni">Hikaye Metni</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="creativeMode"><i class="fas fa-palette"></i> Yaratıcılık Modu</label>
+                <select id="creativeMode" required>
+                    <option value="Profesyonel & Resmi">Profesyonel & Resmi</option>
+                    <option value="Samimi & Bağ Kurucu">Samimi & Bağ Kurucu</option>
+                    <option value="Viral & Enerjik">Viral & Enerjik</option>
+                </select>
+            </div>
+        </div>
+        
+        <label for="audienceFocus"><i class="fas fa-users"></i> Hedef Kitle (Opsiyonel)</label>
+        <input type="text" id="audienceFocus" placeholder="Örn: 'Sporcular', 'Hamileler', '50 yaş üstü bireyler'" />
+
+        <label for="requiredKeywords" style="font-style: italic; color:#888;"><i class="fas fa-tag"></i> Özel Anahtar Kelimeler (Opsiyonel)</label>
+        <input type="text" id="requiredKeywords" placeholder="Örn: 'kişiselleştirilmiş', 'bitki bazlı'" />
+
+    </div>
+
+    <div class="card output-section">
+        <div class="section-title"><i class="fas fa-check-circle"></i> Sonuçlar</div>
+        <div class="error" id="errorMessage" style="display: none;"></div>
+        
+        <label>Gönderi Metni ve Hashtag'ler</label>
+        
+        <div class="progress-container" id="progressContainer">
+            <span id="progressText">Yükleniyor...</span>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBarFill"></div>
+            </div>
+        </div>
+        
+        <div class="output-box" id="outputContent">Hazırlanın! Girdilerinizi tamamlayın ve aşağıdaki düğmeye basın.</div>
+        
+        <button id="copyButton" style="display: none;">
+            <i class="fas fa-copy"></i> Metni Kopyala
+        </button>
+
+    </div>
+
+</div>
+
+<div class="fab-container">
+    <button id="generateButton">
+        <span id="buttonText"><i class="fas fa-magic"></i> Akıllı İçerik Üret</span>
+        <span id="loadingText" style="display: none;"><i class="fas fa-spinner fa-spin"></i> Analiz Ediliyor...</span>
+    </button>
+</div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- DOM Elementleri ---
+        const apiKeyInput = document.getElementById('apiKey');
+        const generateButton = document.getElementById('generateButton');
+        const outputContent = document.getElementById('outputContent');
+        const errorMessage = document.getElementById('errorMessage');
+        const copyButton = document.getElementById('copyButton'); // Yeni eklendi
+        const originalCopyButtonText = copyButton.innerHTML;
+        
+        // Diğer DOM elementleri...
+        const buttonTextSpan = document.getElementById('buttonText');
+        const loadingTextSpan = document.getElementById('loadingText');
+        const urlError = document.getElementById('urlError');
+        const urlInputs = document.querySelectorAll('.reference-url');
+        const postTopicInput = document.getElementById('postTopic');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressText = document.getElementById('progressText');
+        const progressBarFill = document.getElementById('progressBarFill');
+        const targetFormatSelect = document.getElementById('targetFormat');
+        const creativeModeSelect = document.getElementById('creativeMode');
+        const audienceFocusInput = document.getElementById('audienceFocus'); 
+        const requiredKeywordsInput = document.getElementById('requiredKeywords');
+        
+        // --- Uygulama Başlangıcı ---
+        const savedApiKey = localStorage.getItem('geminiApiKey');
+        if (savedApiKey) {
+            apiKeyInput.value = savedApiKey;
+        }
+
+        const setButtonLoading = (isLoading) => {
+            generateButton.disabled = isLoading;
+            buttonTextSpan.style.display = isLoading ? 'none' : 'inline';
+            loadingTextSpan.style.display = isLoading ? 'inline' : 'none';
+            generateButton.style.background = isLoading ? 'var(--primary-color)' : 'linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888, #991475)';
+            progressContainer.style.display = isLoading ? 'flex' : 'none';
+            copyButton.style.display = isLoading ? 'none' : 'flex'; // Yüklenirken Kopyala düğmesini gizle
+            
+            if (!isLoading) {
+                progressBarFill.style.width = '0%';
+                progressText.textContent = 'Yükleniyor...';
+            }
+        };
+
+        const updateProgress = (step, text, percent) => {
+            progressText.innerHTML = `<i class="fas fa-${step === 1 ? 'robot' : 'magic'}"></i> ${text}`;
+            progressBarFill.style.width = `${percent}%`;
+        };
+        
+        // --- ÇIKTIYI GÜZELLEŞTİRME FONKSİYONU ---
+        const formatOutput = (text) => {
+            let html = text;
+            // Kalın metinleri (**) <strong> ile değiştir.
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            // Yeni satır karakterlerini <br> ile değiştirmeyin. white-space: pre-wrap bunu hallediyor.
+            return html;
+        };
+
+        
+        // 2. AKILLI ARKA PLAN MANTIĞI: Seçimlere göre Promt Değişkenlerini Ayarlama
+        const getPromptParameters = (creativeMode, targetFormat) => {
+            let voice = "";
+            let structuralFormat = "Kısa Paragraflar";
+            let ctaAction = "Yorum bırakmaya teşvik et"; 
+            let forbiddenKeywords = "diyet, şok, mucize, garantili"; 
+            let emojiDensity = ""; 
+            
+            if (targetFormat === "Hikaye Metni") {
+                structuralFormat = "Çok kısa cümleler, madde işaretli listeler ve hızlı okunan 1-2 paragraflık metin.";
+            }
+            
+            switch (creativeMode) {
+                case "Profesyonel & Resmi":
+                    voice = "Bilimsel ve Ciddi";
+                    emojiDensity = "Çok az emoji kullanın";
+                    if (targetFormat === "Akış Gönderisi") {
+                          structuralFormat = "Madde İşaretli Listeler ve Kanıtlanmış Veri Vurgusu";
+                    }
+                    ctaAction = "Takipçileri daha fazla bilgi için biyografideki linke yönlendir veya gönderiyi kaydetmeye çağır";
+                    break;
+                case "Samimi & Bağ Kurucu":
+                    voice = "Samimi ve Motive Edici";
+                    emojiDensity = "Orta seviyede emoji kullanın";
+                    ctaAction = "Gönderi hakkında yorumlarını sormaya ve etkileşime girmeye teşvik et";
+                    break;
+                case "Viral & Enerjik":
+                    voice = "Mizahi ve Eğlenceli";
+                    emojiDensity = "Bol emoji kullanın";
+                    ctaAction = "Gönderiyi kaydetmeye, paylaşmaya ve bir arkadaşını etiketlemeye çağır";
+                    forbiddenKeywords = "diyet, şok, garantili, çok ciddi"; 
+                    break;
+            }
+            
+            if (targetFormat !== "Hikaye Metni" && creativeMode !== "Profesyonel & Resmi") {
+                 structuralFormat = "Kısa Paragraflar";
+            }
+
+
+            const lengthConstraint = (targetFormat === "Hikaye Metni") 
+                ? "Uzunluk: MAKSİMUM 300 KARAKTER (yaklaşık 50 kelime). SADECE 1-2 EKRAN GÖRÜNTÜSÜNE SIĞACAK KADAR ÇOK KISA, EN VURUCU 1-2 BİLGİYİ İÇEREN VE HIZLI OKUNAN BİR METİN OLMALIDIR." 
+                : "Uzunluk: Ortalama bir akış gönderisi uzunluğunda.";
+                
+            const contentFocus = (targetFormat === "Hikaye Metni") 
+                ? "Sadece en önemli ve en ilgi çekici 1 veya 2 ana fikri kullan. Sadece dikkat çekici başlıklar ve 1-2 kısa açıklama. Tam metin hikaye metni için çok uzun." 
+                : "Tüm bilgileri kapsa (Hook, ana bilgi, CTA).";
+
+            return { voice, emojiDensity, structuralFormat, ctaAction, forbiddenKeywords, lengthConstraint, contentFocus };
+        };
+
+
+        // --- KOPYALAMA FONKSİYONU ---
+        const copyOutput = async () => {
+            // HTML içeriğinden sadece metni al (strong etiketlerini kaldırarak)
+            const contentText = outputContent.innerText;
+            
+            try {
+                await navigator.clipboard.writeText(contentText);
+                // Başarı geri bildirimi
+                copyButton.innerHTML = '<i class="fas fa-check"></i> Kopyalandı!';
+                copyButton.style.backgroundColor = 'var(--success-color)';
+                
+                setTimeout(() => {
+                    copyButton.innerHTML = originalCopyButtonText;
+                    copyButton.style.backgroundColor = '#833AB4';
+                }, 2000);
+            } catch (err) {
+                console.error('Kopyalama hatası:', err);
+                copyButton.innerHTML = '<i class="fas fa-times"></i> Hata!';
+                copyButton.style.backgroundColor = '#dc3545';
+                
+                setTimeout(() => {
+                    copyButton.innerHTML = originalCopyButtonText;
+                    copyButton.style.backgroundColor = '#833AB4';
+                }, 2000);
+            }
+        };
+
+        copyButton.addEventListener('click', copyOutput);
+        
+        // --- ANA ÜRETİM FONKSİYONU ---
+        const handleGenerate = async () => {
+            const apiKey = apiKeyInput.value.trim();
+            
+            const urls = Array.from(urlInputs)
+                .map(input => input.value.trim())
+                .filter(url => url !== '');
+                
+            const topic = postTopicInput.value.trim();
+            const requiredKeywords = requiredKeywordsInput.value.trim();
+            const audienceFocus = audienceFocusInput.value.trim();
+            
+            const targetFormat = targetFormatSelect.value;
+            const creativeMode = creativeModeSelect.value;
+            
+            const params = getPromptParameters(creativeMode, targetFormat);
+            const audiencePrompt = audienceFocus ? ` İçerik, özellikle "${audienceFocus}" hedef kitlesine yönelik bir dil ve terminoloji kullanmalıdır.` : "";
+
+            if (!apiKey || urls.length === 0 || !topic) {
+                if (urls.length === 0) urlError.style.display = 'block';
+                else urlError.style.display = 'none';
+                alert("Lütfen API Anahtarınızı ve gerekli tüm girdi alanlarını doldurunuz.");
+                return;
+            } else {
+                 urlError.style.display = 'none';
+            }
+
+            localStorage.setItem('geminiApiKey', apiKey);
+            
+            setButtonLoading(true);
+            errorMessage.style.display = 'none';
+            outputContent.textContent = 'İçerik oluşturuluyor...'; 
+            
+            let fullText = ''; 
+            let finalCleanOutput = '';
+
+            try {
+                // --- AŞAMA 1: PLANLAMA VE ÜRETİM (CoT'ye İzin Verilir) ---
+                updateProgress(1, 'Kaynaklar Analiz Ediliyor & Taslak Oluşturuluyor...', 30);
+                
+                const systemInstructionContent1 = `
+                    **ÇIKTI DİLİ:** KESİNLİKLE Türkçe olmalıdır.
+                    **ROL:** Sen profesyonel bir diyetisyenin Instagram içerik uzmanısın.
+                    
+                    **AMAÇ:** Sağlanan URL'leri analiz ederek yüksek kaliteli bir Instagram metni oluşturmaktır.
+
+                    --- KISITLAMA KURALLARI ---
+                    1. **KESİN BAĞLAM:** Kaynak URL'lerden gelen hiçbir bilimsel veriyi icat etme, değiştirme veya çelişme. Yalnızca yeniden ifade et.
+                    2. **YASAKLI KELİMELER:** Metin TÜRKÇE olarak şu kelimeleri İÇERMEMELİDİR: [${params.forbiddenKeywords}].
+
+                    --- STİL VE FORMAT ---
+                    TON & STİL: "${targetFormat}" formatında ve "${params.voice}" tonunda olmalıdır.${audiencePrompt}
+                    UZUNLUK: ${params.lengthConstraint}.
+                    YAPI: "${params.structuralFormat}" formatını kullanmalı. ${params.emojiDensity}.
+                    
+                    --- INSTAGRAM SEO & ETKİLEŞİM KURALLARI ---
+                    1. HOOK ODAĞI: İlk 3 satır, ana konuyu (${topic}) içermeli ve merak uyandırmalıdır.
+                    2. OKUNABİLİRLİK: Akış Gönderisi ise, ana paragrafta her 1-2 cümleden sonra boş satır kullanın.
+                    3. HASHTAG STRATEJİSİ: Hashtag'ler niş, orta ve genel hacimli etiketlerin bir karışımı olmalıdır.
+                `.trim();
+                
+                const planningPrompt = `
+                    ${systemInstructionContent1}
+
+                    --- GÖREV: NİHAİ İÇERİĞİ OLUŞTUR ---
+                    
+                    Aşağıdaki kaynaklardaki bilgileri analiz et:
+                    ${urls.map(url => ` - ${url}`).join('\n')}
+                    
+                    Bu bilgileri kullanarak "${topic}" konusunda, bir hook, ${params.contentFocus} ve son paragrafta "${params.ctaAction}" eylem çağrısı içeren BİR İÇERİK oluştur.
+                    Metinde MUTLAKA şu anahtar kelimeler/konseptler geçmelidir: [${requiredKeywords}]. 
+                    
+                    **TEK ÇIKTI KURALI:** Cevabınız, aşağıdaki ayrıştırıcının hemen altından başlamalı ve başka hiçbir açıklama, planlama notu veya ek metin İÇERMEMELİDİR.
+                    
+                    ---NİHAİ_METİN_BAŞLANGICI---
+                    
+                    [Gönderi Metni buraya gelecek]
+                    
+                    [İki satır boşluk]
+                    
+                    [Hashtag'ler alt alta buraya gelecek]
+                `.trim();
+
+                const response1 = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+                    body: JSON.stringify({ 
+                        contents: [{ parts: [{ text: planningPrompt }] }], 
+                        tools: [{ url_context: {} }] 
+                    })
+                });
+
+                if (!response1.ok) {
+                    const errorJson = await response1.json();
+                    throw new Error(`Aşama 1 API Hatası: ${errorJson.error?.message || response1.status}`);
+                }
+
+                fullText = (await response1.json()).candidates?.[0]?.content?.parts?.[0]?.text || '';
+                
+                if (fullText.trim().length === 0) {
+                    throw new Error('Aşama 1: Modelden Boş Metin Döndü.');
+                }
+                
+                // --- AŞAMA 2: TEMİZLEME VE NİHAİ FORMAT ---
+                updateProgress(2, 'Metin Temizleniyor & Son Kontrol Yapılıyor...', 70);
+                
+                const cleaningPrompt = `
+                    Aşağıda, bir dil modelinin oluşturduğu uzun bir metin bloğu bulunmaktadır.
+                    
+                    SENİN GÖREVİN: Gönderilen metni tarayarak, **---NİHAİ_METİN_BAŞLANGICI---** ayırıcısından sonra başlayan **SADECE TÜRKÇE NİHAİ GÖNDERİ METNİ VE HASHTAG'LERİ** ayıklamaktır. Başka hiçbir planlama notu, analiz, veya ek metin **döndürme**.
+                    
+                    AYIRICININ ADI: ---NİHAİ_METİN_BAŞLANGICI---
+                    
+                    ÇIKTI KURALI: Başka hiçbir açıklama kullanma. SADECE AYIKLANAN TÜRKÇE NİHAİ METNİ döndür. İlk karakteriniz, ayıklanan metnin ilk karakteri olmalıdır.
+                    
+                    İŞTE İLK AŞAMA ÇIKTISI:
+                    ---
+                    ${fullText}
+                    ---
+                `.trim();
+
+                const response2 = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: cleaningPrompt }] }] }) 
+                });
+
+                if (!response2.ok) {
+                    const errorJson = await response2.json();
+                    throw new Error(`Aşama 2 API Hatası: ${errorJson.error?.message || response2.status}`);
+                }
+
+                finalCleanOutput = (await response2.json()).candidates?.[0]?.content?.parts?.[0]?.text || '';
+                
+                if (finalCleanOutput.trim().length === 0) {
+                    const separator = '---NİHAİ_METİN_BAŞLANGICI---';
+                    const separatorIndex = fullText.indexOf(separator);
+                    
+                    if (separatorIndex !== -1) {
+                        finalCleanOutput = fullText.substring(separatorIndex + separator.length).trim();
+                        console.warn("Aşama 2 Başarısız: Kod tabanlı yedek filtreleme uygulandı.");
+                    } else {
+                         throw new Error('Aşama 2: Temizlenmiş çıktı gelmedi. (Ayırıcı 1. aşama çıktısında bulunamadı.)');
+                    }
+                }
+                
+                updateProgress(3, 'İçerik Başarıyla Üretildi!', 100);
+                
+                setTimeout(() => {
+                    outputContent.innerHTML = formatOutput(finalCleanOutput.trim());
+                    setButtonLoading(false); 
+                }, 300); 
+
+            } catch (error) {
+                console.error("Hata:", error);
+                
+                let userMessage = `Hata: ${error.message}. Lütfen API Anahtarınızı kontrol edin.`;
+
+                if (error.message.includes('Failed to fetch')) {
+                     userMessage = `HATA: API İsteği Başarısız. Bu, **tarayıcınızın güvenlik kısıtlamasından (CORS)** kaynaklanır. Lütfen dosyayı bir **yerel sunucu** (Örn: \`python3 -m http.server\`) üzerinden çalıştırın.`;
+                } else if (error.message.includes('Aşama 1')) {
+                     userMessage = `HATA: İçerik Taslağı Oluşturulamadı. Kaynak URL'leri veya API Anahtarınızı kontrol edin. Model, prompt'a yanıt verememiş olabilir. (Detay: ${error.message})`;
+                } else if (error.message.includes('Aşama 2') || error.message.includes('Ayırıcı')) {
+                     userMessage = `HATA: Çıktı Temizleme Aşaması Başarısız. Yedek filtreleme uygulandı. (Detay: ${error.message})`;
+                } else if (fullText.length > 0) {
+                     userMessage = `HATA: Beklenmedik Hata. Tam Çıktı: <pre style="white-space: pre-wrap; font-size: 12px; color: #333; background-color: #f7f7f7; padding: 10px; border-radius: 5px;">${fullText.trim()}</pre>`;
+                }
+                
+                errorMessage.innerHTML = userMessage;
+                errorMessage.style.display = 'block';
+                outputContent.textContent = 'Hata oluştu.';
+                
+                setButtonLoading(false); 
+                copyButton.style.display = 'none'; // Hata durumunda da gizle
+            }
+        };
+
+        generateButton.addEventListener('click', handleGenerate);
+
+        // Enter tuşunu yakalama
+        [apiKeyInput, ...urlInputs, postTopicInput, requiredKeywordsInput, audienceFocusInput].forEach(input => {
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') { 
+                    e.preventDefault(); 
+                    if (!generateButton.disabled) {
+                        handleGenerate();
+                    }
+                }
+            });
+        });
+        
+    });
+</script>
+</body>
+</html>
